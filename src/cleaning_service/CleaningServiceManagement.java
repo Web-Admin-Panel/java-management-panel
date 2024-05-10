@@ -10,17 +10,21 @@ import java.util.List;
 
 
 public class CleaningServiceManagement {
-  public static List employees;
+  public static List employees, customers, appointments;
 //  public static List employees, grades, departments, courses, attendance;
 
-    public static void main(String[] args){
-        // TODO code application logic here
+  public static void test(String[] args){
+    EmployeesTest.main(null);
+    System.out.print("\n\n=======================================================================================\n=======================================================================================\n=======================================================================================");
+    CustomerTest.main(null);
+    System.out.print("\n\n=======================================================================================\n=======================================================================================\n=======================================================================================");
+    AppointmentsTest.main(null);
+    System.exit(200);
+  }
 
-        EmployeesTest.main(null);
-        System.out.print("\n\n=======================================================================================\n=======================================================================================\n=======================================================================================");
-        CustomerTest.main(null);
-        System.out.print("\n\n=======================================================================================\n=======================================================================================\n=======================================================================================");
-        AppointmentsTest.main(null);
-    }
+  public static void main(String[] args){
+//    test(null);
+    MainForm.main(null);
+  }
 
 }
