@@ -1,6 +1,7 @@
 
 package cleaning_service;
 import cleaning_service.tests.*;
+
 import javax.swing.*;
 import java.io.*;
 import java.util.ArrayList;
@@ -10,8 +11,7 @@ import java.util.List;
 
 
 public class CleaningServiceManagement {
-  public static List employees, customers, appointments;
-//  public static List employees, grades, departments, courses, attendance;
+//  public static List employees, customers, appointments;
 
   public static void test(String[] args){
     EmployeesTest.main(null);

@@ -1,10 +1,12 @@
 package cleaning_service;
+import cleaning_service.manager.*;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList; // Assuming you have an ArrayList for customers
+
+//import static cleaning_service.manager.CustomerManager.customers;
 
 public class MainForm extends JFrame {
     private JPanel mainPanel;
@@ -24,12 +26,18 @@ public class MainForm extends JFrame {
     private JTextField customerNoTextField; // Assuming customer has a no field
     private JPanel systemPanel;
     private JLabel systemLable;
+    private JList customerList;
+
+    private DefaultListModel<String> customerListModel;
 
     // Assuming you have an ArrayList to store customers
-    private static ArrayList<Customer> customers = new ArrayList<>();
+//    private static ArrayList<Customer> customers = new ArrayList<>();
+//    public static List employees, customers, appointments;
+//    public static List employees = customers;
+//    private CustomerManager customerManager = new CustomerManager();
+
 
     public MainForm() {
-        this.systemLable = systemLable;
         setTitle("Management App");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(600, 400);
@@ -50,6 +58,11 @@ public class MainForm extends JFrame {
 
 
         setContentPane(mainPanel);
+
+//        customerList = new JList();
+        customerListModel = new DefaultListModel<>();
+        customerList.setModel(customerListModel);
+
         systemPageButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -75,6 +88,7 @@ public class MainForm extends JFrame {
                 systemPageButton.setEnabled(true);
                 appointmentsPageButton.setEnabled(true);
                 employeesPageButton.setEnabled(true);
+
 //                mainPanel.add(customerPanel, BorderLayout.CENTER); // Add systemPanel to center
 //                mainPanel.revalidate(); // Inform Swing about changes
             }
@@ -99,11 +113,12 @@ public class MainForm extends JFrame {
 
                 // Add validation if needed (e.g., check if any field is empty)
                 int customer_id = 0;
-                Customer newCustomer = new Customer(customer_id, customerNo, customerName, customerSurname); // Assuming appropriate Customer constructor
-                add_customer(newCustomer); // Call your add_customer function
-
+//                Customer newCustomer = new Customer(customer_id, customerNo, customerName, customerSurname); // Assuming appropriate Customer constructor
+                CustomerManager.add_customer(customer_id, customerNo, customerName, customerSurname); // Call your add_customer function
+//                customers.add(newCustomer);
                 // Clear text fields after adding customer (optional)
                 JOptionPane.showMessageDialog(null, "New customer was added:\n- id: " + customer_id + "\n- Number: " + customerNo + "\n- Name: " + customerName + "\n- Surname: " + customerSurname);
+                customerListModel.addElement("id: " + customer_id + ", Number: " + customerNo + ", Name: " + customerName + ", Surname: " + customerSurname);
                 customerNameTextField.setText("");
                 customerSurnameTextField.setText("");
                 customerNoTextField.setText("");
@@ -112,9 +127,6 @@ public class MainForm extends JFrame {
         });
     }
 
-    public static void add_customer(Customer customer) {
-        customers.add(customer);
-    }
 
     public static void main(String[] args) {
         new MainForm();
