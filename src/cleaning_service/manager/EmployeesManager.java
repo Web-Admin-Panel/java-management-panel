@@ -20,6 +20,10 @@ public class EmployeesManager {
         return employees;
     }
 
+    public static Employee getEmployee(int index){
+        return employees.get(index);
+    }
+
     public static void retrieve_employees()
     {
         try {

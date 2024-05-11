@@ -2,15 +2,22 @@ package cleaning_service;
 import cleaning_service.manager.*;
 
 import javax.swing.*;
+import javax.swing.event.CellEditorListener;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+import java.time.LocalDate;
 import java.util.Objects;
 
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import java.text.NumberFormat;
+
+
+import com.github.lgooddatepicker.components.DatePicker;
 
 
 //import static cleaning_service.manager.CustomerManager.customers;
@@ -55,11 +62,12 @@ public class MainForm extends JFrame {
     private JTable employeesTable;
     private JComboBox employeeGenderComboBox;
     private JFormattedTextField employeeNumberTextField;
-
+    private DatePicker employeeBDayDatePicker;
 
 
     private DefaultTableModel customerTableModel;
     private DefaultTableModel employeeTableModel;
+    private EmployeeCellEditorListener employeeTableListener;
 //    private DefaultListModel<String> customerListModel;
 
 
@@ -88,6 +96,7 @@ public class MainForm extends JFrame {
 //        JFormattedTextField employeeNumberTextField = new JFormattedTextField(formatter);
         employeeNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         customerNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
+        employeeBDayDatePicker.setDateToToday();
 
 
         BorderLayout main_layout = new BorderLayout();
@@ -113,9 +122,11 @@ public class MainForm extends JFrame {
         customerTableModel = new DefaultTableModel(customersTableColumnNames, 0);
         customersTable.setModel(customerTableModel);
 
-        String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Nationality", "Birthday"};
+        String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Birthday", "Nationality"};
         employeeTableModel = new DefaultTableModel(employeesTableColumnNames, 0);
         employeesTable.setModel(employeeTableModel);
+        employeeTableListener = new EmployeeCellEditorListener();
+        employeeTableModel.addTableModelListener(employeeTableListener);
 
 
 
@@ -204,10 +215,11 @@ public class MainForm extends JFrame {
                 String employeeName = employeeNameTextField.getText();
                 String employeeSurname = employeeSurnameTextField.getText();
                 String employeeNo = employeeNumberTextField.getText();
-//                String employeeGender = employeeGenderField.getText();
                 String employeeGender = Objects.requireNonNull(employeeGenderComboBox.getSelectedItem()).toString();
                 String employeeJob = employeeJobTextField.getText();
-                String employeeBirthday = employeeBirthdayTextField.getText();
+                String employeeBirthday;
+                LocalDate selectedDate = employeeBDayDatePicker.getDate();
+                employeeBirthday = selectedDate.toString();
                 String employeeNationality = employeeNationalityTextField.getText();
 
 
@@ -229,11 +241,15 @@ public class MainForm extends JFrame {
                 employeeNumberTextField.setText("");
 //                employeeGenderField.setText("");
                 employeeJobTextField.setText("");
-                employeeBirthdayTextField.setText("");
+//                employeeBirthdayTextField.setText("");
+                employeeBDayDatePicker.setDateToToday();
                 employeeNationalityTextField.setText("");
 
             }
         });
+
+        // Edit employee table data
+
 
 
         // System page actions
@@ -281,6 +297,17 @@ public class MainForm extends JFrame {
 
             }
         });
+//        employeesTable.addInputMethodListener(new InputMethodListener() {
+//            @Override
+//            public void inputMethodTextChanged(InputMethodEvent event) {
+//                System.out.println("AAAAAAAAAAaaaaaa");
+//            }
+//
+//            @Override
+//            public void caretPositionChanged(InputMethodEvent event) {
+//
+//            }
+//        });
     }
 
 
@@ -288,4 +315,74 @@ public class MainForm extends JFrame {
         new MainForm();
     }
 
+
+
+
+    public class EmployeeCellEditorListener implements CellEditorListener, TableModelListener {
+        @Override
+        public void editingStopped(ChangeEvent e) {
+            System.out.print("\nAAAAAAAAAA\n");
+            JTable table = (JTable) e.getSource();
+            int row = table.getSelectedRow();
+            int column = table.getSelectedColumn();
+            Object newValue = table.getModel().getValueAt(row, column);
+
+            // Update data model (assuming your data is stored in an ArrayList)
+//            yourDataList.set(row, newValue);
+            System.out.print("\nAAAAAAAAAAaaaaaa\n" + newValue.toString());
+
+            // Notify the table model of the change (optional)
+//            employeeTableModel.fireTableDataChanged(); // Optional, might be triggered automatically
+
+            // ... rest of your code
+        }
+//        @Override
+//        public void editingStopped(ChangeEvent e) {
+//            JTable table = (JTable) e.getSource();
+//            System.out.print("\nAAAAAAAAAAaaaaaa\n");
+//            int row = table.getSelectedRow();
+//            int column = table.getSelectedColumn();
+//            Object newValue = table.getModel().getValueAt(row, column);
+//            // Update your underlying data structure with the new value (replace with your logic)
+//            employeesTable.setValueAt(newValue, row, column);
+//            Employee employee = EmployeesManager.getEmployee(row);
+//
+//            EmployeesManager.edit_employee(employee.);
+//
+//            // Optional: Save data to persistent storage
+//            // ...
+//        }
+
+        @Override
+        public void editingCanceled(ChangeEvent e) {
+            System.out.print("\nCCCCCCCCCCCCCCC\n");
+        }
+        @Override
+        public void tableChanged(TableModelEvent e) {
+            System.out.print("\nTTTTTTTTTTTTTTTT\n");
+            if (e.getType() == TableModelEvent.UPDATE) {
+                int row = e.getFirstRow();
+                JTable table = employeesTable;
+
+                int empId = (int) table.getModel().getValueAt(row, 0);
+                String empNo = (String) table.getModel().getValueAt(row, 1);
+                String empName = (String) table.getModel().getValueAt(row, 2);
+                String empSurname = (String) table.getModel().getValueAt(row, 3);
+                String empGender = (String) table.getModel().getValueAt(row, 4);
+                String empJobTitle = (String) table.getModel().getValueAt(row, 5);
+                String empBirthday = (String) table.getModel().getValueAt(row, 6);
+                String empNationality = (String) table.getModel().getValueAt(row, 7);
+
+
+                System.out.print("\n" + empId + " " + empNo + " " + empName + " " + empSurname + " " + empGender + " " + empJobTitle + " " + empBirthday + " " + empNationality + "\n");
+                EmployeesManager.edit_employee(empId, empNo, empName, empSurname, empGender, empJobTitle, empBirthday, empNationality);
+
+            }
+
+
+        }
+    }
 }
+
+
+
