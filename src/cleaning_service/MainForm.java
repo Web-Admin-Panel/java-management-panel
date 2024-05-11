@@ -8,6 +8,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.Objects;
 
+import javax.swing.text.DefaultFormatterFactory;
+import javax.swing.text.NumberFormatter;
+import java.text.NumberFormat;
+
+
 //import static cleaning_service.manager.CustomerManager.customers;
 
 public class MainForm extends JFrame {
@@ -29,7 +34,7 @@ public class MainForm extends JFrame {
     private JButton addNewCustomerButton;
     private JTextField customerNameTextField;
     private JTextField customerSurnameTextField;
-    private JTextField customerNoTextField;
+    private JFormattedTextField customerNumberTextField;
     private JScrollPane CustomersTableScroll;
 
     // System operations
@@ -43,14 +48,14 @@ public class MainForm extends JFrame {
     private JScrollPane EmployeesTableScroll;
     private JTextField employeeNameTextField;
     private JTextField employeeSurnameTextField;
-    private JTextField employeeNumberTextField;
     private JButton addNewEmployeeButton;
-    private JTextField employeeGenderField;
     private JTextField employeeJobTextField;
     private JTextField employeeNationalityTextField;
     private JTextField employeeBirthdayTextField;
     private JTable employeesTable;
     private JComboBox employeeGenderComboBox;
+    private JFormattedTextField employeeNumberTextField;
+
 
 
     private DefaultTableModel customerTableModel;
@@ -71,6 +76,20 @@ public class MainForm extends JFrame {
         setSize(900, 600);
         setLocationRelativeTo(null);
         setVisible(true);
+
+        NumberFormat format = NumberFormat.getInstance();
+        NumberFormatter formatter = new NumberFormatter(format);
+        formatter.setValueClass(Integer.class);
+//        formatter.setMinimum(0); // Optional: sets the minimum value to 0
+        formatter.setMaximum(Integer.MAX_VALUE);
+        formatter.setAllowsInvalid(false);
+        // formatter.setCommitsOnValidEdit(true); // Optional: if true, makes ValueEvent be fired with each valid edit
+
+//        JFormattedTextField employeeNumberTextField = new JFormattedTextField(formatter);
+        employeeNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
+        customerNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
+
+
         BorderLayout main_layout = new BorderLayout();
         mainPanel.setLayout(main_layout); // Change layout manager
         mainPanel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
@@ -97,6 +116,11 @@ public class MainForm extends JFrame {
         String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Nationality", "Birthday"};
         employeeTableModel = new DefaultTableModel(employeesTableColumnNames, 0);
         employeesTable.setModel(employeeTableModel);
+
+
+
+
+        // Add this JFormattedTextField to your panel where necessary
 
 
 //        String[] genderOptions = {"Male", "Female"};
@@ -152,7 +176,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String customerName = customerNameTextField.getText();
                 String customerSurname = customerSurnameTextField.getText();
-                String customerNo = customerNoTextField.getText(); // Assuming customer has a no field
+                String customerNo = customerNumberTextField.getText(); // Assuming customer has a no field
 
                 // Add validation if needed (e.g., check if any field is empty)
 
@@ -167,7 +191,7 @@ public class MainForm extends JFrame {
                 JOptionPane.showMessageDialog(contentPanel, "New customer was added:\n- id: " + customer_id + "\n- Number: " + customerNo + "\n- Name: " + customerName + "\n- Surname: " + customerSurname);
                 customerNameTextField.setText("");
                 customerSurnameTextField.setText("");
-                customerNoTextField.setText("");
+                customerNumberTextField.setText("");
 
             }
         });
@@ -263,4 +287,5 @@ public class MainForm extends JFrame {
     public static void main(String[] args) {
         new MainForm();
     }
+
 }
