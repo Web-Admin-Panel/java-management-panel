@@ -2,6 +2,7 @@ package cleaning_service;
 import cleaning_service.manager.*;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,11 +28,15 @@ public class MainForm extends JFrame {
     private JPanel systemPanel;
     private JLabel systemLable;
     private JList customerList;
+    private JTable customersTable;
     private JButton loadDataFromFileButton;
     private JButton dumpDataToFileButton;
     private JLabel localStorageField;
 
-    private DefaultListModel<String> customerListModel;
+
+    private DefaultTableModel customerTableModel;
+//    private DefaultListModel<String> customerListModel;
+
 
     // Assuming you have an ArrayList to store customers
 //    private static ArrayList<Customer> customers = new ArrayList<>();
@@ -63,8 +68,13 @@ public class MainForm extends JFrame {
         setContentPane(mainPanel);
 
 //        customerList = new JList();
-        customerListModel = new DefaultListModel<>();
-        customerList.setModel(customerListModel);
+//        customerListModel = new DefaultListModel<>();
+//        customerList.setModel(customerListModel);
+
+        String[] customersTableColumnNames = {"id", "Number", "Name", "Surname"};
+//        customersTable = new JTable();
+        customerTableModel = new DefaultTableModel(customersTableColumnNames, 0);
+        customersTable.setModel(customerTableModel);
 
         systemPageButton.addActionListener(new ActionListener() {
             @Override
@@ -121,7 +131,7 @@ public class MainForm extends JFrame {
 //                customers.add(newCustomer);
                 // Clear text fields after adding customer (optional)
                 JOptionPane.showMessageDialog(null, "New customer was added:\n- id: " + customer_id + "\n- Number: " + customerNo + "\n- Name: " + customerName + "\n- Surname: " + customerSurname);
-                customerListModel.addElement("id: " + customer_id + ", Number: " + customerNo + ", Name: " + customerName + ", Surname: " + customerSurname);
+//                customerListModel.addElement("id: " + customer_id + ", Number: " + customerNo + ", Name: " + customerName + ", Surname: " + customerSurname);
                 customerNameTextField.setText("");
                 customerSurnameTextField.setText("");
                 customerNoTextField.setText("");
@@ -137,10 +147,18 @@ public class MainForm extends JFrame {
         loadDataFromFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                customerTableModel.setRowCount(1); // Clears existing rows
                 CustomerManager.retrieve_customers();
                 for (Customer customer : CustomerManager.getCustomers()) {
+                    Object[] data = {
+                            customer.getCustomer_id(),
+                            customer.getCustomer_no(),
+                            customer.getCustomer_name(),
+                            customer.getCustomer_surname()
+                    };
 
-                    customerListModel.addElement("id: " + customer.getCustomer_id() + ", Number: " + customer.getCustomer_no() + ", Name: " + customer.getCustomer_name() + ", Surname: " + customer.getCustomer_surname());
+                    customerTableModel.addRow(data);
+//                    customerListModel.addElement("id: " + customer.getCustomer_id() + ", Number: " + customer.getCustomer_no() + ", Name: " + customer.getCustomer_name() + ", Surname: " + customer.getCustomer_surname());
                 }
             }
         });
