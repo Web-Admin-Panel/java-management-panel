@@ -27,6 +27,9 @@ public class MainForm extends JFrame {
     private JPanel systemPanel;
     private JLabel systemLable;
     private JList customerList;
+    private JButton loadDataFromFileButton;
+    private JButton dumpDataToFileButton;
+    private JLabel localStorageField;
 
     private DefaultListModel<String> customerListModel;
 
@@ -123,6 +126,22 @@ public class MainForm extends JFrame {
                 customerSurnameTextField.setText("");
                 customerNoTextField.setText("");
 
+            }
+        });
+        dumpDataToFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+
+            }
+        });
+        loadDataFromFileButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                CustomerManager.retrieve_customers();
+                for (Customer customer : CustomerManager.getCustomers()) {
+
+                    customerListModel.addElement("id: " + customer.getCustomer_id() + ", Number: " + customer.getCustomer_no() + ", Name: " + customer.getCustomer_name() + ", Surname: " + customer.getCustomer_surname());
+                }
             }
         });
     }
