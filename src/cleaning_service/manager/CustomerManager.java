@@ -30,8 +30,6 @@ public class CustomerManager {
         }
         catch (IOException | ClassNotFoundException ignored){
         }
-
-
     }
     public static boolean backup_customers()
     {
