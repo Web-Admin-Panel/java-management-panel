@@ -68,6 +68,7 @@ public class MainForm extends JFrame {
     private DefaultTableModel customerTableModel;
     private DefaultTableModel employeeTableModel;
     private EmployeeCellEditorListener employeeTableListener;
+    private CustomerCellEditorListener customerTableListener;
 //    private DefaultListModel<String> customerListModel;
 
 
@@ -87,6 +88,7 @@ public class MainForm extends JFrame {
 
         NumberFormat format = NumberFormat.getInstance();
         NumberFormatter formatter = new NumberFormatter(format);
+
         formatter.setValueClass(Integer.class);
 //        formatter.setMinimum(0); // Optional: sets the minimum value to 0
         formatter.setMaximum(Integer.MAX_VALUE);
@@ -97,6 +99,7 @@ public class MainForm extends JFrame {
         employeeNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         customerNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         employeeBDayDatePicker.setDateToToday();
+
 
 
         BorderLayout main_layout = new BorderLayout();
@@ -128,15 +131,8 @@ public class MainForm extends JFrame {
         employeeTableListener = new EmployeeCellEditorListener();
         employeeTableModel.addTableModelListener(employeeTableListener);
 
-
-
-
-        // Add this JFormattedTextField to your panel where necessary
-
-
-//        String[] genderOptions = {"Male", "Female"};
-//        employeeGenderComboBox.op;
-//        JComboBox<String> employeeGenderComboBox = new JComboBox<>(genderOptions);
+        customerTableListener = new CustomerCellEditorListener();
+        customerTableModel.addTableModelListener(customerTableListener);
 
 
 
@@ -223,8 +219,19 @@ public class MainForm extends JFrame {
                 String employeeNationality = employeeNationalityTextField.getText();
 
 
-                // Add validation if needed (e.g., check if any field is empty)
+                boolean allValid = true;
 
+                for (String field : new String[]{employeeName, employeeSurname, employeeNo, employeeJob, employeeNationality}) {
+                    if (field == null || field.isEmpty()) {
+                        allValid = false;
+                        JOptionPane.showMessageDialog(contentPanel, "Some fields are empty! Transaction is terminated.");
+                        break;
+                    }
+                }
+
+                if (!allValid) {
+                    return;
+                }
                 int employee_id = EmployeesManager.getEmployees().size() + 1;
                 EmployeesManager.add_employee(
                         employee_id, employeeNo, employeeName, employeeSurname,
@@ -258,7 +265,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 CustomerManager.backup_customers();
                 EmployeesManager.backup_employees();
-                JOptionPane.showMessageDialog(null, "Data was saved successfully!");
+                JOptionPane.showMessageDialog(contentPanel, "Data was saved successfully!");
 
             }
         });
@@ -321,46 +328,13 @@ public class MainForm extends JFrame {
     public class EmployeeCellEditorListener implements CellEditorListener, TableModelListener {
         @Override
         public void editingStopped(ChangeEvent e) {
-            System.out.print("\nAAAAAAAAAA\n");
-            JTable table = (JTable) e.getSource();
-            int row = table.getSelectedRow();
-            int column = table.getSelectedColumn();
-            Object newValue = table.getModel().getValueAt(row, column);
-
-            // Update data model (assuming your data is stored in an ArrayList)
-//            yourDataList.set(row, newValue);
-            System.out.print("\nAAAAAAAAAAaaaaaa\n" + newValue.toString());
-
-            // Notify the table model of the change (optional)
-//            employeeTableModel.fireTableDataChanged(); // Optional, might be triggered automatically
-
-            // ... rest of your code
         }
-//        @Override
-//        public void editingStopped(ChangeEvent e) {
-//            JTable table = (JTable) e.getSource();
-//            System.out.print("\nAAAAAAAAAAaaaaaa\n");
-//            int row = table.getSelectedRow();
-//            int column = table.getSelectedColumn();
-//            Object newValue = table.getModel().getValueAt(row, column);
-//            // Update your underlying data structure with the new value (replace with your logic)
-//            employeesTable.setValueAt(newValue, row, column);
-//            Employee employee = EmployeesManager.getEmployee(row);
-//
-//            EmployeesManager.edit_employee(employee.);
-//
-//            // Optional: Save data to persistent storage
-//            // ...
-//        }
-
         @Override
         public void editingCanceled(ChangeEvent e) {
-            System.out.print("\nCCCCCCCCCCCCCCC\n");
         }
         @Override
         public void tableChanged(TableModelEvent e) {
-            System.out.print("\nTTTTTTTTTTTTTTTT\n");
-            if (e.getType() == TableModelEvent.UPDATE) {
+            if (e.getType() == TableModelEvent.UPDATE) { // Data was changed in the table
                 int row = e.getFirstRow();
                 JTable table = employeesTable;
 
@@ -370,12 +344,40 @@ public class MainForm extends JFrame {
                 String empSurname = (String) table.getModel().getValueAt(row, 3);
                 String empGender = (String) table.getModel().getValueAt(row, 4);
                 String empJobTitle = (String) table.getModel().getValueAt(row, 5);
-                String empBirthday = (String) table.getModel().getValueAt(row, 6);
-                String empNationality = (String) table.getModel().getValueAt(row, 7);
+                String empNationality = (String) table.getModel().getValueAt(row, 6);
+                String empBirthday = (String) table.getModel().getValueAt(row, 7);
 
 
                 System.out.print("\n" + empId + " " + empNo + " " + empName + " " + empSurname + " " + empGender + " " + empJobTitle + " " + empBirthday + " " + empNationality + "\n");
                 EmployeesManager.edit_employee(empId, empNo, empName, empSurname, empGender, empJobTitle, empBirthday, empNationality);
+
+            }
+
+
+        }
+    }
+
+    public class CustomerCellEditorListener implements CellEditorListener, TableModelListener {
+        @Override
+        public void editingStopped(ChangeEvent e) {
+        }
+        @Override
+        public void editingCanceled(ChangeEvent e) {
+        }
+        @Override
+        public void tableChanged(TableModelEvent e) {
+            if (e.getType() == TableModelEvent.UPDATE) { // Data was changed in the table
+                int row = e.getFirstRow();
+                JTable table = customersTable;
+
+                int customerId = (int) table.getModel().getValueAt(row, 0);
+                String customerNo = (String) table.getModel().getValueAt(row, 1);
+                String customerName = (String) table.getModel().getValueAt(row, 2);
+                String customerSurname = (String) table.getModel().getValueAt(row, 3);
+
+
+                System.out.print("\n" + customerId + " " + customerNo + " " + customerName + " " + customerSurname + "\n");
+                CustomerManager.edit_customer(customerId, customerNo, customerName, customerSurname);
 
             }
 

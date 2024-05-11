@@ -53,23 +53,22 @@ public class CustomerManager {
         customers.add(st);
     }
 
-    public static void edit_customer(int emp_id, String emp_no, String emp_name,
-                                     String emp_surname, String gender,
-                                     String nationality, String birthday) {
+    public static void edit_customer(int customer_id, String customer_no, String customer_name,
+                                     String customer_surname) {
         Customer st=null;
         Boolean found=false;
         Iterator<Customer> itr = customers.iterator();
         while (itr.hasNext()) {
             st = itr.next();
-            if(emp_id==st.getCustomer_id()) {
+            if(customer_id==st.getCustomer_id()) {
                 found=true;
                 break;
             }
         }
         if (found) {
-            st.setCustomer_no(emp_no);
-            st.setCustomer_name(emp_name);
-            st.setCustomer_surname(emp_surname);
+            st.setCustomer_no(customer_no);
+            st.setCustomer_name(customer_name);
+            st.setCustomer_surname(customer_surname);
         }
     }
 
