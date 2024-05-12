@@ -1,8 +1,6 @@
 package cleaning_service.manager;
 
 import cleaning_service.Appointment;
-import cleaning_service.Customer;
-import cleaning_service.Employee;
 
 import javax.swing.*;
 import java.io.*;
@@ -11,89 +9,52 @@ import java.util.*;
 
 
 public class AppointmentsManager {
-    public static List employees, customers, appointments;
+    private static List<Appointment> appointments;
 
-    public static void main(String[] args) {
-        employees = new ArrayList();
-        customers = new ArrayList();
-        appointments = new ArrayList();
-
-
-        test_appointments();
-        System.out.print("\n");
+    static {
+        appointments = new ArrayList<>(); // Initialize the list for all instances
     }
 
-    public static void test_appointments() {
-        try {
-            retrieve_employees();
-            retrieve_customers();
-        } catch (IOException | ClassNotFoundException ignored) {
-        }
-
-        try {
-            System.out.print("\n Running Tests for Class Appointment...\n\n");
-            int numPairs = Math.min(employees.size(), customers.size());
-
-            Random random = new Random();
-            Collections.shuffle(employees, random);
-            Collections.shuffle(customers, random);
-
-            for (int i = 0; i < numPairs; i++) {
-                Employee employee = (Employee) employees.get(i);
-                Customer customer = (Customer) customers.get(i);
-
-                String randomAddress = generateRandomAddress();
-                String randomTime = generateRandomTime();
-                String randomDate = generateRandomDate();
-                add_appointment(i, customer.getCustomer_id(), employee.getEmp_id(), randomAddress, randomDate, randomTime);
-            }
-
-            System.out.print("\n Add_appointment()\n\n");
-
-
-            System.out.print("\n List_appointment()\n\n");
-            list_appointments();
-            System.out.print("\n Edit_appointment()\n\n");
-            edit_appointment(2, 1, 2, "Famagusta", "6.05.2024", "23:59");
-            System.out.print("\n List_appointment()\n\n");
-            list_appointments();
-            backup_appointments();
-
-            System.out.print("\n Delete_appointment(4)\n\n");
-            delete_appointment(4);
-
-            System.out.print("\n List_appointment()\n\n");
-            list_appointments();
-
-            retrieve_appointments();
-            System.out.print("\n List_appointment()\n\n");
-            list_appointments();
-        }
-        catch (IOException | ClassNotFoundException e) {
-            JOptionPane.showMessageDialog(null, "Error: " + e.toString() + e.getMessage());
-        }
+    public static List<Appointment> getAppointments(){
+        return appointments;
     }
 
-    public static void retrieve_appointments() throws IOException, ClassNotFoundException
+    public static Appointment getAppointment(int index){
+        return appointments.get(index);
+    }
+
+
+
+    public static void retrieve_appointments()
     {
-        File infile  = new File("appointments.dat");
-        FileInputStream infilestream = new FileInputStream(infile);
-        ObjectInputStream inObjectStream = new ObjectInputStream(infilestream);
-        appointments = (ArrayList)inObjectStream.readObject();
-
-        inObjectStream.close();
-
+        try {
+            File infile  = new File("appointments.dat");
+            FileInputStream infilestream = new FileInputStream(infile);
+            ObjectInputStream inObjectStream = new ObjectInputStream(infilestream);
+            appointments = (ArrayList)inObjectStream.readObject();
+            inObjectStream.close();
+        }
+        catch (IOException | ClassNotFoundException ignored){
+        }
     }
-    public static void backup_appointments() throws IOException
+
+    public static boolean backup_appointments()
     {
-        File outfile  = new File("appointments.dat");
-        FileOutputStream outfilestream = new FileOutputStream(outfile);
-        ObjectOutputStream outObjectStream = new ObjectOutputStream(outfilestream);
+        try {
+            File outfile = new File("appointments.dat");
+            FileOutputStream outfilestream = new FileOutputStream(outfile);
+            ObjectOutputStream outObjectStream = new ObjectOutputStream(outfilestream);
 
-        outObjectStream.writeObject(appointments);
-        outObjectStream.close();
+            outObjectStream.writeObject(appointments);
+            outObjectStream.close();
+            return true;
+        }
+        catch (IOException e){
+            return false;
+        }
 
     }
+
 
     public static void add_appointment(int appointment_id, int customer_id, int employee_id, String address, String date, String time) {
         Appointment apptmnt = new Appointment(appointment_id, customer_id, employee_id, address, date, time);
@@ -194,25 +155,4 @@ public class AppointmentsManager {
         return dateFormat.format(calendar.getTime());
     }
 
-    public static void retrieve_employees() throws IOException, ClassNotFoundException
-    {
-        File infile  = new File("employees.dat");
-        FileInputStream infilestream = new FileInputStream(infile);
-        ObjectInputStream inObjectStream = new ObjectInputStream(infilestream);
-        employees = (ArrayList)inObjectStream.readObject();
-
-        inObjectStream.close();
-
-    }
-
-    public static void retrieve_customers() throws IOException, ClassNotFoundException
-    {
-        File infile  = new File("customers.dat");
-        FileInputStream infilestream = new FileInputStream(infile);
-        ObjectInputStream inObjectStream = new ObjectInputStream(infilestream);
-        customers = (ArrayList)inObjectStream.readObject();
-
-        inObjectStream.close();
-
-    }
 }

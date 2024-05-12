@@ -7,17 +7,21 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.SwingUtilities;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Objects;
 
+import javax.swing.table.TableCellRenderer;
 import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import java.text.NumberFormat;
 
 
 import com.github.lgooddatepicker.components.DatePicker;
+import com.github.lgooddatepicker.components.TimePicker;
 
 
 //import static cleaning_service.manager.CustomerManager.customers;
@@ -63,12 +67,23 @@ public class MainForm extends JFrame {
     private JComboBox employeeGenderComboBox;
     private JFormattedTextField employeeNumberTextField;
     private DatePicker employeeBDayDatePicker;
+    private JPanel appointmentPanel;
+    private JTable appointmentsTable;
+    private JScrollPane appointmentsTableScroll;
+    private DatePicker appointmentDatePicker;
+    private TimePicker appointmentTimePicker;
+    private JButton addNewAppointmentButton;
+    private JTextField appointmentAddressTextField;
+    private JFormattedTextField appointmentEmpNoTextField;
+    private JFormattedTextField appointmentCustomerNoTextField;
 
 
     private DefaultTableModel customerTableModel;
     private DefaultTableModel employeeTableModel;
+    private DefaultTableModel appointmentsTableModel;
     private EmployeeCellEditorListener employeeTableListener;
     private CustomerCellEditorListener customerTableListener;
+    private AppointmentCellEditorListener appointmentTableListener;
 //    private DefaultListModel<String> customerListModel;
 
 
@@ -96,8 +111,12 @@ public class MainForm extends JFrame {
         // formatter.setCommitsOnValidEdit(true); // Optional: if true, makes ValueEvent be fired with each valid edit
 
 //        JFormattedTextField employeeNumberTextField = new JFormattedTextField(formatter);
+
+        // Set up integer input validation
         employeeNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         customerNumberTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
+        appointmentEmpNoTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
+        appointmentCustomerNoTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         employeeBDayDatePicker.setDateToToday();
 
 
@@ -112,18 +131,25 @@ public class MainForm extends JFrame {
         JPanel cardPanel = new JPanel(cardLayout);
         cardPanel.add(customerPanel, "customers");
         cardPanel.add(employeePanel, "employees");
+        cardPanel.add(appointmentPanel, "appointments");
         cardPanel.add(systemPanel, "system");
 
         mainPanel.add(cardPanel, BorderLayout.CENTER); // Add customerPanel to center
-
 
         setContentPane(mainPanel);
         cardLayout.show(cardPanel, "system");
 
 
-        String[] customersTableColumnNames = {"id", "Number", "Name", "Surname"};
+        String[] customersTableColumnNames = {"id", "Number", "Name", "Surname", "Operations"};
         customerTableModel = new DefaultTableModel(customersTableColumnNames, 0);
         customersTable.setModel(customerTableModel);
+
+        // Event listeners
+        customerTableListener = new CustomerCellEditorListener();
+        customerTableModel.addTableModelListener(customerTableListener);  // To handle data changes
+        customersTable.addMouseListener(customerTableListener);  // To delete row on button click
+        customersTable.getColumnModel().getColumn(customerTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer());
+
 
         String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Birthday", "Nationality"};
         employeeTableModel = new DefaultTableModel(employeesTableColumnNames, 0);
@@ -131,10 +157,32 @@ public class MainForm extends JFrame {
         employeeTableListener = new EmployeeCellEditorListener();
         employeeTableModel.addTableModelListener(employeeTableListener);
 
-        customerTableListener = new CustomerCellEditorListener();
-        customerTableModel.addTableModelListener(customerTableListener);
+        String[] appointmentTableColumnNames = {"Appointment Id", "Employee No", "Customer No", "Address", "Date", "Time"};
+        appointmentsTableModel = new DefaultTableModel(appointmentTableColumnNames, 0);
+        appointmentsTable.setModel(appointmentsTableModel);
 
 
+
+
+// Add action listener to capture button clicks (assuming your listener class handles it)
+
+//        customersTable.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                if (SwingUtilities.isRightMouseButton(e)) { // Check for right-click on button
+//                    int row = customersTable.rowAtPoint(e.getPoint());
+//                    if (row != -1) { // Ensure a valid row is clicked
+//                        Point clickPoint = e.getPoint();
+//                        int clickColumn = customersTable.columnAtPoint(clickPoint);
+//                        // Check if the click is within the "delete" button column
+//                        if (clickColumn == customerTableModel.getColumnCount() - 1) { // Assuming "delete" is the last column
+//                            CustomerCellEditorListener listener = new CustomerCellEditorListener();
+//                            listener.handleDeleteButtonClick(row);
+//                        }
+//                    }
+//                }
+//            }
+//        });
 
         // Navigation Listeners
         systemPageButton.addActionListener(new ActionListener() {
@@ -172,6 +220,11 @@ public class MainForm extends JFrame {
         appointmentsPageButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                cardLayout.show(cardPanel, "appointments");
+                customersPageButton.setEnabled(true);
+                systemPageButton.setEnabled(true);
+                appointmentsPageButton.setEnabled(false);
+                employeesPageButton.setEnabled(true);
             }
         });
 
@@ -183,7 +236,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String customerName = customerNameTextField.getText();
                 String customerSurname = customerSurnameTextField.getText();
-                String customerNo = customerNumberTextField.getText(); // Assuming customer has a no field
+                String customerNo = customerNumberTextField.getValue().toString(); // Assuming customer has a no field
 
                 // Add validation if needed (e.g., check if any field is empty)
 
@@ -210,7 +263,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String employeeName = employeeNameTextField.getText();
                 String employeeSurname = employeeSurnameTextField.getText();
-                String employeeNo = employeeNumberTextField.getText();
+                String employeeNo = employeeNumberTextField.getValue().toString();
                 String employeeGender = Objects.requireNonNull(employeeGenderComboBox.getSelectedItem()).toString();
                 String employeeJob = employeeJobTextField.getText();
                 String employeeBirthday;
@@ -255,18 +308,86 @@ public class MainForm extends JFrame {
             }
         });
 
-        // Edit employee table data
 
+
+        // Add new appointment button action
+        addNewAppointmentButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int employeeNo = (int) appointmentEmpNoTextField.getValue();
+                int customerNo = (int) appointmentCustomerNoTextField.getValue();
+
+                LocalDate selectedDate = appointmentDatePicker.getDate();
+                String appointmentDate;
+                if (selectedDate != null)
+                    appointmentDate = selectedDate.toString();
+                else
+                    appointmentDate = "";
+
+                LocalTime selectedTime = appointmentTimePicker.getTime();
+                String appointmentTime;
+                if (selectedTime != null)
+                    appointmentTime = selectedTime.toString();
+                else
+                    appointmentTime = "";
+
+
+                String address = appointmentAddressTextField.getText();
+
+
+
+                boolean allValid = true;
+
+                for (String field : new String[]{appointmentDate, appointmentTime}) {
+                    if (field == null || field.isEmpty()) {
+                        allValid = false;
+                        JOptionPane.showMessageDialog(contentPanel, "Some fields are empty! Transaction is terminated.");
+                        break;
+                    }
+                }
+                if (!allValid) {
+                    return;
+                }
+                Customer customer = CustomerManager.getCustomerByNum(customerNo);
+                Employee employee = EmployeesManager.getEmployeeByNum(employeeNo);
+                if (customer == null){
+                    JOptionPane.showMessageDialog(contentPanel, "Invalid data! The Customer with such a Number wasn't found! Check you input.");
+                    return;
+                }
+                else if (employee == null){
+                    JOptionPane.showMessageDialog(contentPanel, "Invalid data! The Employee with such a Number wasn't found! Check you input.");
+                    return;
+                }
+                int cusId = customer.getCustomer_id();
+                int empId = employee.getEmp_id();
+
+
+                int appointment_id = AppointmentsManager.getAppointments().size() + 1;
+
+                AppointmentsManager.add_appointment(
+                        appointment_id, empId, cusId, address, appointmentDate, appointmentTime
+                );
+                Object[] data = {
+                        appointment_id, employeeNo, customerNo, address, appointmentDate, appointmentTime
+                };
+                appointmentsTableModel.addRow(data);
+                JOptionPane.showMessageDialog(contentPanel, "New appointment was added!");
+                appointmentEmpNoTextField.setText("");
+                appointmentCustomerNoTextField.setText("");
+                appointmentAddressTextField.setText("");
+
+            }
+        });
 
 
         // System page actions
         dumpDataToFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                CustomerManager.backup_customers();
-                EmployeesManager.backup_employees();
-                JOptionPane.showMessageDialog(contentPanel, "Data was saved successfully!");
-
+                if (CustomerManager.backup_customers() && EmployeesManager.backup_employees() && AppointmentsManager.backup_appointments())
+                    JOptionPane.showMessageDialog(contentPanel, "Data was saved successfully!");
+                else
+                    JOptionPane.showMessageDialog(contentPanel, "There was an error while dumping the data!");
             }
         });
         loadDataFromFileButton.addActionListener(new ActionListener() {
@@ -274,6 +395,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 customerTableModel.setRowCount(0); // Clears existing rows
                 employeeTableModel.setRowCount(0);
+                appointmentsTableModel.setRowCount(0);
 
                 CustomerManager.retrieve_customers();
                 for (Customer customer : CustomerManager.getCustomers()) {
@@ -300,21 +422,23 @@ public class MainForm extends JFrame {
                     };
                     employeeTableModel.addRow(data);
                 }
+                // And for appointments
+                AppointmentsManager.retrieve_appointments();
+                for (Appointment appointment : AppointmentsManager.getAppointments()) {
+                    Object[] data = {
+                            appointment.getAppointment_id(),
+                            appointment.getEmployee_id(),
+                            appointment.getCustomer_id(),
+                            appointment.getAddress(),
+                            appointment.getDate(),
+                            appointment.getTime()
+                    };
+                    appointmentsTableModel.addRow(data);
+                }
                 JOptionPane.showMessageDialog(contentPanel, "Data was loaded successfully!");
 
             }
         });
-//        employeesTable.addInputMethodListener(new InputMethodListener() {
-//            @Override
-//            public void inputMethodTextChanged(InputMethodEvent event) {
-//                System.out.println("AAAAAAAAAAaaaaaa");
-//            }
-//
-//            @Override
-//            public void caretPositionChanged(InputMethodEvent event) {
-//
-//            }
-//        });
     }
 
 
@@ -357,7 +481,7 @@ public class MainForm extends JFrame {
         }
     }
 
-    public class CustomerCellEditorListener implements CellEditorListener, TableModelListener {
+    public class CustomerCellEditorListener implements CellEditorListener, TableModelListener, MouseListener {
         @Override
         public void editingStopped(ChangeEvent e) {
         }
@@ -366,6 +490,7 @@ public class MainForm extends JFrame {
         }
         @Override
         public void tableChanged(TableModelEvent e) {
+
             if (e.getType() == TableModelEvent.UPDATE) { // Data was changed in the table
                 int row = e.getFirstRow();
                 JTable table = customersTable;
@@ -383,7 +508,67 @@ public class MainForm extends JFrame {
 
 
         }
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (!SwingUtilities.isLeftMouseButton(e))
+                return;
+            Point clickPoint = e.getPoint();
+            int column = customersTable.columnAtPoint(clickPoint);
+            if (column != customersTable.getColumnCount() - 1)
+                return;
+            int confirmation = JOptionPane.showConfirmDialog(contentPanel, "Are you sure you want to delete this row?", "Warning", JOptionPane.YES_NO_OPTION);
+            if (confirmation == 0) {  // Means yes
+                int row = customersTable.rowAtPoint(clickPoint);
+                int customerId = (int) customerTableModel.getValueAt(row, 0);
+                String customerNo = (String) customerTableModel.getValueAt(row, 1);
+                CustomerManager.delete_customer(customerId);
+                customerTableModel.removeRow(row);
+                JOptionPane.showMessageDialog(contentPanel, "Customer with Number " + customerNo + " was deleted successfully!");
+            }
+
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {}
+        @Override
+        public void mouseReleased(MouseEvent e) {}
+        @Override
+        public void mouseEntered(MouseEvent e) {}
+        @Override
+        public void mouseExited(MouseEvent e) {}
     }
+
+    public class AppointmentCellEditorListener implements CellEditorListener, TableModelListener {
+        @Override
+        public void editingStopped(ChangeEvent e) {
+        }
+        @Override
+        public void editingCanceled(ChangeEvent e) {
+        }
+        @Override
+        public void tableChanged(TableModelEvent e) {
+            return;
+        }
+
+    }
+
+    public class DeleteButtonRenderer extends JButton implements TableCellRenderer {
+
+        @Override
+        public Component getTableCellRendererComponent(JTable table, Object value,
+                                                       boolean isSelected, boolean hasFocus, int row, int column) {
+
+            setText("Delete"); // Set button text
+//            setBackground(Color.RED); // Set background color
+            setForeground(Color.BLACK); // Set text color
+            setFont(getFont().deriveFont(Font.BOLD)); // Set bold font
+            setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10)); // Set padding
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            return this;
+        }
+    }
+
+
 }
 
 

@@ -8,6 +8,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class EmployeesManager {
     private static List<Employee> employees;
@@ -23,6 +24,36 @@ public class EmployeesManager {
     public static Employee getEmployee(int index){
         return employees.get(index);
     }
+
+    public static Employee getEmployeeByNum(int employee_no){
+        int listEmpNo;
+        String StrEmpNo;
+        System.out.print("Checking employees: \n");
+        for (Employee employee: employees)
+        {
+            StrEmpNo = employee.getEmp_no();
+            if (StrEmpNo.isEmpty())
+                break;
+            listEmpNo = Integer.parseInt(StrEmpNo);
+            System.out.print("Comparing: " + employee_no + " end " + listEmpNo + "\n");
+            if(employee_no == listEmpNo) {
+                System.out.print("Found!\n");
+                return employee;
+            }
+        }
+        return null;
+    }
+//    public static Employee getEmployeeByNum(String employee_no){
+//        Employee employee=null;
+//        Iterator<Employee> itr = employees.iterator();
+//        while (itr.hasNext()) {
+//            employee = itr.next();
+//            if(Objects.equals(employee_no, employee.getEmp_no())) {
+//                break;
+//            }
+//        }
+//        return employee;
+//    }
 
     public static void retrieve_employees()
     {

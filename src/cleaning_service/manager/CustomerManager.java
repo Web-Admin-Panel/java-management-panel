@@ -6,6 +6,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 
 public class CustomerManager {
 //    public static List customers;
@@ -17,6 +18,23 @@ public class CustomerManager {
 
     public static List<Customer> getCustomers(){
         return customers;
+    }
+
+    public static Customer getCustomerByNum(int customer_no){
+        Customer customer=null;
+        int listCustomerNo;
+        Iterator<Customer> itr = customers.iterator();
+        System.out.print("Checking customers:\n");
+        while (itr.hasNext()) {
+            customer = itr.next();
+            listCustomerNo = Integer.parseInt(customer.getCustomer_no());
+            System.out.print("Comparing: " + customer_no + " end " + listCustomerNo + "\n");
+            if(customer_no == listCustomerNo) {
+                System.out.print("Found!\n");
+                break;
+            }
+        }
+        return customer;  // return either found item or Null
     }
 
     public static void retrieve_customers()
