@@ -82,13 +82,13 @@ public class AppointmentsManager {
         }
     }
 
-    public static void delete_appointment(int emp_id) {
+    public static void delete_appointment(int appointment_id) {
         Appointment apptmnt=null;
         Boolean found=false;
         Iterator <Appointment> itr = appointments.iterator();
         while (itr.hasNext()) {
             apptmnt = itr.next();
-            if(emp_id==(apptmnt.getAppointment_id())) {
+            if(appointment_id==apptmnt.getAppointment_id()) {
                 found=true;
                 break;
             }

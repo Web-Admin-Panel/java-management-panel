@@ -1,6 +1,7 @@
 package cleaning_service.manager;
 
 import cleaning_service.Customer;
+import cleaning_service.Employee;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -21,20 +22,36 @@ public class CustomerManager {
     }
 
     public static Customer getCustomerByNum(int customer_no){
-        Customer customer=null;
+//        Customer customer=null;
+//        int listCustomerNo;
+//        Iterator<Customer> itr = customers.iterator();
+//        System.out.print("Checking customers:\n");
+//        while (itr.hasNext()) {
+//            customer = itr.next();
+//            listCustomerNo = Integer.parseInt(customer.getCustomer_no());
+//            System.out.print("Comparing: " + customer_no + " end " + listCustomerNo + "\n");
+//            if(customer_no == listCustomerNo) {
+//                System.out.print("Found!\n");
+//                break;
+//            }
+//        }
+//        return customer;  // return either found item or Null
         int listCustomerNo;
-        Iterator<Customer> itr = customers.iterator();
-        System.out.print("Checking customers:\n");
-        while (itr.hasNext()) {
-            customer = itr.next();
-            listCustomerNo = Integer.parseInt(customer.getCustomer_no());
+        String StrCustomerNo;
+        System.out.print("Checking customers: \n");
+        for (Customer customer: customers)
+        {
+            StrCustomerNo = customer.getCustomer_no();
+            if (StrCustomerNo.isEmpty())
+                break;
+            listCustomerNo = Integer.parseInt(StrCustomerNo);
             System.out.print("Comparing: " + customer_no + " end " + listCustomerNo + "\n");
             if(customer_no == listCustomerNo) {
                 System.out.print("Found!\n");
-                break;
+                return customer;
             }
         }
-        return customer;  // return either found item or Null
+        return null;
     }
 
     public static void retrieve_customers()

@@ -81,6 +81,7 @@ public class MainForm extends JFrame {
     private DefaultTableModel customerTableModel;
     private DefaultTableModel employeeTableModel;
     private DefaultTableModel appointmentsTableModel;
+
     private EmployeeCellEditorListener employeeTableListener;
     private CustomerCellEditorListener customerTableListener;
     private AppointmentCellEditorListener appointmentTableListener;
@@ -118,6 +119,7 @@ public class MainForm extends JFrame {
         appointmentEmpNoTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         appointmentCustomerNoTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         employeeBDayDatePicker.setDateToToday();
+        appointmentDatePicker.setDateToToday();
 
 
 
@@ -139,50 +141,32 @@ public class MainForm extends JFrame {
         setContentPane(mainPanel);
         cardLayout.show(cardPanel, "system");
 
-
+        // Customers
         String[] customersTableColumnNames = {"id", "Number", "Name", "Surname", "Operations"};
+        customerTableListener = new CustomerCellEditorListener();
         customerTableModel = new DefaultTableModel(customersTableColumnNames, 0);
         customersTable.setModel(customerTableModel);
-
-        // Event listeners
-        customerTableListener = new CustomerCellEditorListener();
         customerTableModel.addTableModelListener(customerTableListener);  // To handle data changes
         customersTable.addMouseListener(customerTableListener);  // To delete row on button click
-        customersTable.getColumnModel().getColumn(customerTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer());
+        customersTable.getColumnModel().getColumn(customerTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer()); // Render buttons
 
-
+        // Employees
         String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Birthday", "Nationality"};
         employeeTableModel = new DefaultTableModel(employeesTableColumnNames, 0);
-        employeesTable.setModel(employeeTableModel);
         employeeTableListener = new EmployeeCellEditorListener();
+        employeesTable.setModel(employeeTableModel);
         employeeTableModel.addTableModelListener(employeeTableListener);
+        employeesTable.addMouseListener(employeeTableListener);  // To delete row on button click
+        employeesTable.getColumnModel().getColumn(employeeTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer());
 
+        // Appointments
         String[] appointmentTableColumnNames = {"Appointment Id", "Employee No", "Customer No", "Address", "Date", "Time"};
+        appointmentTableListener = new AppointmentCellEditorListener();
         appointmentsTableModel = new DefaultTableModel(appointmentTableColumnNames, 0);
         appointmentsTable.setModel(appointmentsTableModel);
+        appointmentsTable.addMouseListener(appointmentTableListener);
+        appointmentsTable.getColumnModel().getColumn(appointmentsTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer());
 
-
-
-
-// Add action listener to capture button clicks (assuming your listener class handles it)
-
-//        customersTable.addMouseListener(new MouseAdapter() {
-//            @Override
-//            public void mouseClicked(MouseEvent e) {
-//                if (SwingUtilities.isRightMouseButton(e)) { // Check for right-click on button
-//                    int row = customersTable.rowAtPoint(e.getPoint());
-//                    if (row != -1) { // Ensure a valid row is clicked
-//                        Point clickPoint = e.getPoint();
-//                        int clickColumn = customersTable.columnAtPoint(clickPoint);
-//                        // Check if the click is within the "delete" button column
-//                        if (clickColumn == customerTableModel.getColumnCount() - 1) { // Assuming "delete" is the last column
-//                            CustomerCellEditorListener listener = new CustomerCellEditorListener();
-//                            listener.handleDeleteButtonClick(row);
-//                        }
-//                    }
-//                }
-//            }
-//        });
 
         // Navigation Listeners
         systemPageButton.addActionListener(new ActionListener() {
@@ -236,9 +220,20 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String customerName = customerNameTextField.getText();
                 String customerSurname = customerSurnameTextField.getText();
-                String customerNo = customerNumberTextField.getValue().toString(); // Assuming customer has a no field
+                String customerNo = Objects.requireNonNull(customerNumberTextField.getValue()).toString(); // Assuming customer has a no field
 
-                // Add validation if needed (e.g., check if any field is empty)
+                boolean allValid = true;
+                for (String field : new String[]{customerName, customerSurname, customerNo}) {
+                    if (field == null || field.isEmpty()) {
+                        allValid = false;
+                        JOptionPane.showMessageDialog(contentPanel, "Some fields are empty! Transaction is terminated.");
+                        break;
+                    }
+                }
+
+                if (!allValid) {
+                    return;
+                }
 
                 int customer_id = CustomerManager.getCustomers().size() + 1;
                 CustomerManager.add_customer(customer_id, customerNo, customerName, customerSurname); // Call your add_customer function
@@ -263,7 +258,7 @@ public class MainForm extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 String employeeName = employeeNameTextField.getText();
                 String employeeSurname = employeeSurnameTextField.getText();
-                String employeeNo = employeeNumberTextField.getValue().toString();
+                String employeeNo = Objects.requireNonNull(employeeNumberTextField.getValue()).toString();
                 String employeeGender = Objects.requireNonNull(employeeGenderComboBox.getSelectedItem()).toString();
                 String employeeJob = employeeJobTextField.getText();
                 String employeeBirthday;
@@ -338,7 +333,7 @@ public class MainForm extends JFrame {
 
                 boolean allValid = true;
 
-                for (String field : new String[]{appointmentDate, appointmentTime}) {
+                for (String field : new String[]{appointmentDate, appointmentTime, address}) {
                     if (field == null || field.isEmpty()) {
                         allValid = false;
                         JOptionPane.showMessageDialog(contentPanel, "Some fields are empty! Transaction is terminated.");
@@ -449,13 +444,11 @@ public class MainForm extends JFrame {
 
 
 
-    public class EmployeeCellEditorListener implements CellEditorListener, TableModelListener {
+    public class EmployeeCellEditorListener implements CellEditorListener, TableModelListener, MouseListener  {
         @Override
-        public void editingStopped(ChangeEvent e) {
-        }
+        public void editingStopped(ChangeEvent e) {}
         @Override
-        public void editingCanceled(ChangeEvent e) {
-        }
+        public void editingCanceled(ChangeEvent e) {}
         @Override
         public void tableChanged(TableModelEvent e) {
             if (e.getType() == TableModelEvent.UPDATE) { // Data was changed in the table
@@ -477,8 +470,35 @@ public class MainForm extends JFrame {
 
             }
 
+        }
+
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (!SwingUtilities.isLeftMouseButton(e))
+                return;
+            Point clickPoint = e.getPoint();
+            int column = employeesTable.columnAtPoint(clickPoint);
+            if (column != employeesTable.getColumnCount() - 1)
+                return;
+            int confirmation = JOptionPane.showConfirmDialog(contentPanel, "Are you sure you want to delete this row?", "Warning", JOptionPane.YES_NO_OPTION);
+            if (confirmation == 0) {  // Means yes
+                int row = employeesTable.rowAtPoint(clickPoint);
+                int employeeId = (int) employeeTableModel.getValueAt(row, 0);
+                String employeeNo = (String) employeeTableModel.getValueAt(row, 1);
+                EmployeesManager.delete_employee(employeeId);
+                employeeTableModel.removeRow(row);
+                JOptionPane.showMessageDialog(contentPanel, "Employee with Number " + employeeNo + " was deleted successfully!");
+            }
 
         }
+        @Override
+        public void mousePressed(MouseEvent e) {}
+        @Override
+        public void mouseReleased(MouseEvent e) {}
+        @Override
+        public void mouseEntered(MouseEvent e) {}
+        @Override
+        public void mouseExited(MouseEvent e) {}
     }
 
     public class CustomerCellEditorListener implements CellEditorListener, TableModelListener, MouseListener {
@@ -538,18 +558,60 @@ public class MainForm extends JFrame {
         public void mouseExited(MouseEvent e) {}
     }
 
-    public class AppointmentCellEditorListener implements CellEditorListener, TableModelListener {
+
+
+    public class AppointmentCellEditorListener implements CellEditorListener, TableModelListener, MouseListener {
         @Override
-        public void editingStopped(ChangeEvent e) {
-        }
+        public void editingStopped(ChangeEvent e) {}
         @Override
-        public void editingCanceled(ChangeEvent e) {
-        }
+        public void editingCanceled(ChangeEvent e) {}
         @Override
         public void tableChanged(TableModelEvent e) {
-            return;
+            if (e.getType() == TableModelEvent.UPDATE) { // Data was changed in the table
+                int row = e.getFirstRow();
+                JTable table = customersTable;
+
+                int customerId = (int) table.getModel().getValueAt(row, 0);
+                String customerNo = (String) table.getModel().getValueAt(row, 1);
+                String customerName = (String) table.getModel().getValueAt(row, 2);
+                String customerSurname = (String) table.getModel().getValueAt(row, 3);
+
+
+                System.out.print("\n" + customerId + " " + customerNo + " " + customerName + " " + customerSurname + "\n");
+                CustomerManager.edit_customer(customerId, customerNo, customerName, customerSurname);
+
+            }
         }
 
+        @Override
+        public void mouseClicked(MouseEvent e) {
+            if (!SwingUtilities.isLeftMouseButton(e))
+                return;
+            Point clickPoint = e.getPoint();
+            int column = appointmentsTable.columnAtPoint(clickPoint);
+            if (column != appointmentsTable.getColumnCount() - 1)
+                return;
+            int confirmation = JOptionPane.showConfirmDialog(contentPanel, "Are you sure you want to delete this row?", "Warning", JOptionPane.YES_NO_OPTION);
+            if (confirmation == 0) {  // Means yes
+                int row = appointmentsTable.rowAtPoint(clickPoint);
+                int appointmentId = (int) appointmentsTableModel.getValueAt(row, 0);
+                AppointmentsManager.delete_appointment(appointmentId);
+                appointmentsTableModel.removeRow(row);
+                JOptionPane.showMessageDialog(contentPanel, "Appointment " + appointmentId + " was deleted successfully!");
+            }
+        }
+
+        @Override
+        public void mousePressed(MouseEvent e) {}
+
+        @Override
+        public void mouseReleased(MouseEvent e) {}
+
+        @Override
+        public void mouseEntered(MouseEvent e) {}
+
+        @Override
+        public void mouseExited(MouseEvent e) {}
     }
 
     public class DeleteButtonRenderer extends JButton implements TableCellRenderer {
