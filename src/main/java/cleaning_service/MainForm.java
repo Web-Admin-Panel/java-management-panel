@@ -1,5 +1,6 @@
 package cleaning_service;
 import cleaning_service.manager.*;
+import cleaning_service.util.*;
 
 import javax.swing.*;
 import javax.swing.event.CellEditorListener;
@@ -10,6 +11,7 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.SwingUtilities;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -52,7 +54,6 @@ public class MainForm extends JFrame {
     private JPanel systemPanel;
     private JLabel systemLabel;
     private JTable customersTable;
-    private JButton loadDataFromFileButton;
     private JButton dumpDataToFileButton;
     private JLabel localStorageField;
     private JPanel employeePanel;
@@ -76,6 +77,7 @@ public class MainForm extends JFrame {
     private JTextField appointmentAddressTextField;
     private JFormattedTextField appointmentEmpNoTextField;
     private JFormattedTextField appointmentCustomerNoTextField;
+    private JButton reloadDataFromDBButton;
 
 
     private DefaultTableModel customerTableModel;
@@ -120,7 +122,6 @@ public class MainForm extends JFrame {
         appointmentCustomerNoTextField.setFormatterFactory(new DefaultFormatterFactory(formatter));
         employeeBDayDatePicker.setDateToToday();
         appointmentDatePicker.setDateToToday();
-
 
 
         BorderLayout main_layout = new BorderLayout();
@@ -213,7 +214,6 @@ public class MainForm extends JFrame {
         });
 
 
-
         // Add new customer button action
         addNewCustomerButton.addActionListener(new ActionListener() {
             @Override
@@ -304,7 +304,6 @@ public class MainForm extends JFrame {
         });
 
 
-
         // Add new appointment button action
         addNewAppointmentButton.addActionListener(new ActionListener() {
             @Override
@@ -330,7 +329,6 @@ public class MainForm extends JFrame {
                 String address = appointmentAddressTextField.getText();
 
 
-
                 boolean allValid = true;
 
                 for (String field : new String[]{appointmentDate, appointmentTime, address}) {
@@ -343,13 +341,13 @@ public class MainForm extends JFrame {
                 if (!allValid) {
                     return;
                 }
-                Customer customer = CustomerManager.getCustomerByNum(customerNo);
+
+                Customer customer = CustomerManager.getCustomerByNum(String.valueOf(customerNo));
                 Employee employee = EmployeesManager.getEmployeeByNum(employeeNo);
-                if (customer == null){
+                if (customer == null) {
                     JOptionPane.showMessageDialog(contentPanel, "Invalid data! The Customer with such a Number wasn't found! Check you input.");
                     return;
-                }
-                else if (employee == null){
+                } else if (employee == null) {
                     JOptionPane.showMessageDialog(contentPanel, "Invalid data! The Employee with such a Number wasn't found! Check you input.");
                     return;
                 }
@@ -374,25 +372,34 @@ public class MainForm extends JFrame {
             }
         });
 
-
-        // System page actions
         dumpDataToFileButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (CustomerManager.backup_customers() && EmployeesManager.backup_employees() && AppointmentsManager.backup_appointments())
+                boolean success = true;
+
+                try {
+                    success &= DBbackup.writeToCSVFile("customers_backup.csv", customerTableModel);
+                    success &= DBbackup.writeToCSVFile("employees_backup.csv", employeeTableModel);
+                    success &= DBbackup.writeToCSVFile("appointments_backup.csv", appointmentsTableModel);
+                } catch (IOException ioException) {
+                    success = false;
+                }
+
+                if (success) {
                     JOptionPane.showMessageDialog(contentPanel, "Data was saved successfully!");
-                else
+                } else {
                     JOptionPane.showMessageDialog(contentPanel, "There was an error while dumping the data!");
+                }
             }
         });
-        loadDataFromFileButton.addActionListener(new ActionListener() {
+
+        reloadDataFromDBButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 customerTableModel.setRowCount(0); // Clears existing rows
                 employeeTableModel.setRowCount(0);
                 appointmentsTableModel.setRowCount(0);
 
-                CustomerManager.retrieve_customers();
                 for (Customer customer : CustomerManager.getCustomers()) {
                     Object[] data = {
                             customer.getCustomer_id(),
@@ -403,7 +410,6 @@ public class MainForm extends JFrame {
                     customerTableModel.addRow(data);
                 }
                 // Repeat the same for employees
-                EmployeesManager.retrieve_employees();
                 for (Employee employee : EmployeesManager.getEmployees()) {
                     Object[] data = {
                             employee.getEmp_id(),
@@ -418,7 +424,6 @@ public class MainForm extends JFrame {
                     employeeTableModel.addRow(data);
                 }
                 // And for appointments
-                AppointmentsManager.retrieve_appointments();
                 for (Appointment appointment : AppointmentsManager.getAppointments()) {
                     Object[] data = {
                             appointment.getAppointment_id(),
@@ -434,14 +439,8 @@ public class MainForm extends JFrame {
 
             }
         });
+
     }
-
-
-    public static void main(String[] args) {
-        new MainForm();
-    }
-
-
 
 
     public class EmployeeCellEditorListener implements CellEditorListener, TableModelListener, MouseListener  {
@@ -630,6 +629,10 @@ public class MainForm extends JFrame {
         }
     }
 
+
+    public static void main(String[] args) {
+        new MainForm();
+    }
 
 }
 

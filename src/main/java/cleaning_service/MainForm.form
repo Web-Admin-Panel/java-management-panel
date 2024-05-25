@@ -156,7 +156,7 @@
               </component>
             </children>
           </grid>
-          <grid id="c751f" binding="systemPanel" layout-manager="GridLayoutManager" row-count="3" column-count="2" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
+          <grid id="c751f" binding="systemPanel" layout-manager="GridLayoutManager" row-count="3" column-count="3" same-size-horizontally="false" same-size-vertically="false" hgap="-1" vgap="-1">
             <margin top="0" left="0" bottom="0" right="0"/>
             <constraints>
               <card name="Card2"/>
@@ -166,7 +166,7 @@
             <children>
               <component id="fec6c" class="javax.swing.JLabel" binding="systemLabel">
                 <constraints>
-                  <grid row="0" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
+                  <grid row="0" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
                   <text value="System operations"/>
@@ -174,7 +174,7 @@
               </component>
               <component id="945ea" class="javax.swing.JLabel" binding="localStorageField">
                 <constraints>
-                  <grid row="1" column="0" row-span="1" col-span="2" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false">
+                  <grid row="1" column="0" row-span="1" col-span="3" vsize-policy="0" hsize-policy="0" anchor="0" fill="0" indent="0" use-parent-layout="false">
                     <preferred-size width="33" height="108"/>
                   </grid>
                 </constraints>
@@ -182,20 +182,20 @@
                   <text value="Local storage operations"/>
                 </properties>
               </component>
-              <component id="c77af" class="javax.swing.JButton" binding="loadDataFromFileButton">
-                <constraints>
-                  <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
-                </constraints>
-                <properties>
-                  <text value="Load local data"/>
-                </properties>
-              </component>
               <component id="135cd" class="javax.swing.JButton" binding="dumpDataToFileButton">
                 <constraints>
                   <grid row="2" column="0" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
                 </constraints>
                 <properties>
-                  <text value="Save data locally"/>
+                  <text value="Dump data to CSV"/>
+                </properties>
+              </component>
+              <component id="79b14" class="javax.swing.JButton" binding="reloadDataFromDBButton" default-binding="true">
+                <constraints>
+                  <grid row="2" column="1" row-span="1" col-span="1" vsize-policy="0" hsize-policy="3" anchor="1" fill="1" indent="0" use-parent-layout="false"/>
+                </constraints>
+                <properties>
+                  <text value="Reload data from DB"/>
                 </properties>
               </component>
             </children>

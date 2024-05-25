@@ -27,3 +27,6 @@ replay_pid*
 /employees.dat
 /.idea/
 /nbproject/
+/customers_backup.csv
+/appointments_backup.csv
+/employees_backup.csv

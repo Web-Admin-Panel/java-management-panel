@@ -1,5 +1,4 @@
 package cleaning_service;
-
 import java.io.Serializable;
 
 public class Appointment implements Serializable{
@@ -19,42 +18,27 @@ public class Appointment implements Serializable{
         this.date = date;
         this.time = time;
     }
-    public int getAppointment_id() {
-        return appointment_id;
-    }
+    public int getAppointment_id() {return appointment_id;}
 
     public void setAppointment_id(int appointment_id) {
         this.appointment_id = appointment_id;
     }
 
-    public int getCustomer_id() {
-        return customer_id;
-    }
+    public int getCustomer_id() {return customer_id;}
 
-    public void setCustomer_id(int customer_id) {
-        this.customer_id = customer_id;
-    }
+    public void setCustomer_id(int customer_id) {this.customer_id = customer_id;}
 
-    public int getEmployee_id() {
-        return employee_id;
-    }
+    public int getEmployee_id() {return employee_id;}
 
-    public void setEmployee_id(int employee_id) {
-        this.employee_id = employee_id;
-    }
+    public void setEmployee_id(int employee_id) {this.employee_id = employee_id;}
 
-
-    public String getAddress() {
-        return address;
-    }
+    public String getAddress() {return address;}
 
     public void setAddress(String address) {
         this.address = address;
     }
 
-    public String getDate() {
-        return date;
-    }
+    public String getDate() {return date;}
 
     public void setDate(String date) {
         this.date = date;
