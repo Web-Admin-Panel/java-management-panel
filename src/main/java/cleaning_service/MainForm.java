@@ -152,7 +152,7 @@ public class MainForm extends JFrame {
         customersTable.getColumnModel().getColumn(customerTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer()); // Render buttons
 
         // Employees
-        String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Birthday", "Nationality"};
+        String[] employeesTableColumnNames = {"id", "Number", "Name", "Surname", "Gender", "Job Title", "Birthday", "Nationality", "Operations"};
         employeeTableModel = new DefaultTableModel(employeesTableColumnNames, 0);
         employeeTableListener = new EmployeeCellEditorListener();
         employeesTable.setModel(employeeTableModel);
@@ -161,7 +161,7 @@ public class MainForm extends JFrame {
         employeesTable.getColumnModel().getColumn(employeeTableModel.getColumnCount() - 1).setCellRenderer(new DeleteButtonRenderer());
 
         // Appointments
-        String[] appointmentTableColumnNames = {"Appointment Id", "Employee No", "Customer No", "Address", "Date", "Time"};
+        String[] appointmentTableColumnNames = {"Appointment Id", "Employee No", "Customer No", "Address", "Date", "Time", "Operations"};
         appointmentTableListener = new AppointmentCellEditorListener();
         appointmentsTableModel = new DefaultTableModel(appointmentTableColumnNames, 0);
         appointmentsTable.setModel(appointmentsTableModel);
