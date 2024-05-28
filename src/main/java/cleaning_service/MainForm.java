@@ -12,6 +12,7 @@ import javax.swing.SwingUtilities;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -21,6 +22,7 @@ import javax.swing.text.DefaultFormatterFactory;
 import javax.swing.text.NumberFormatter;
 import java.text.NumberFormat;
 
+import java.sql.SQLIntegrityConstraintViolationException;
 
 import com.github.lgooddatepicker.components.DatePicker;
 import com.github.lgooddatepicker.components.TimePicker;
@@ -87,14 +89,6 @@ public class MainForm extends JFrame {
     private EmployeeCellEditorListener employeeTableListener;
     private CustomerCellEditorListener customerTableListener;
     private AppointmentCellEditorListener appointmentTableListener;
-//    private DefaultListModel<String> customerListModel;
-
-
-    // Assuming you have an ArrayList to store customers
-//    private static ArrayList<Customer> customers = new ArrayList<>();
-//    public static List employees, customers, appointments;
-//    public static List employees = customers;
-//    private CustomerManager customerManager = new CustomerManager();
 
 
     public MainForm() {
@@ -235,15 +229,16 @@ public class MainForm extends JFrame {
                     return;
                 }
 
-                int customer_id = CustomerManager.getCustomers().size() + 1;
-                CustomerManager.add_customer(customer_id, customerNo, customerName, customerSurname); // Call your add_customer function
+//                int customer_id = CustomerManager.getCustomers().size() + 1;
+                CustomerManager.add_customer(customerNo, customerName, customerSurname); // Call your add_customer function
+                Customer customer = CustomerManager.getCustomerByNum(String.valueOf(customerNo));
                 Object[] data = {
-                        customer_id, customerNo, customerName, customerSurname
+                        customer.getCustomer_id(), customerNo, customerName, customerSurname
                 };
 
                 customerTableModel.addRow(data);
                 // Clear text fields after adding customer (optional)
-                JOptionPane.showMessageDialog(contentPanel, "New customer was added:\n- id: " + customer_id + "\n- Number: " + customerNo + "\n- Name: " + customerName + "\n- Surname: " + customerSurname);
+                JOptionPane.showMessageDialog(contentPanel, "New customer was added:\n- id: " + customer.getCustomer_id() + "\n- Number: " + customerNo + "\n- Name: " + customerName + "\n- Surname: " + customerSurname);
                 customerNameTextField.setText("");
                 customerSurnameTextField.setText("");
                 customerNumberTextField.setText("");
@@ -280,12 +275,13 @@ public class MainForm extends JFrame {
                 if (!allValid) {
                     return;
                 }
-                int employee_id = EmployeesManager.getEmployees().size() + 1;
+//                int employee_id = EmployeesManager.getEmployees().size() + 1;
                 EmployeesManager.add_employee(
-                        employee_id, employeeNo, employeeName, employeeSurname,
+                        employeeNo, employeeName, employeeSurname,
                         employeeGender, employeeJob, employeeNationality, employeeBirthday);
+                Employee employee = EmployeesManager.getEmployeeByNum(employeeNo);
                 Object[] data = {
-                        employee_id, employeeNo, employeeName, employeeSurname,
+                        employee.getEmp_id(), employeeNo, employeeName, employeeSurname,
                         employeeGender, employeeJob, employeeBirthday, employeeNationality
                 };
 
@@ -308,7 +304,7 @@ public class MainForm extends JFrame {
         addNewAppointmentButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                int employeeNo = (int) appointmentEmpNoTextField.getValue();
+                String employeeNo = (String) appointmentEmpNoTextField.getValue().toString();
                 int customerNo = (int) appointmentCustomerNoTextField.getValue();
 
                 LocalDate selectedDate = appointmentDatePicker.getDate();
@@ -355,10 +351,10 @@ public class MainForm extends JFrame {
                 int empId = employee.getEmp_id();
 
 
-                int appointment_id = AppointmentsManager.getAppointments().size() + 1;
+//                int appointment_id = AppointmentsManager.getAppointments().size() + 1;
 
-                AppointmentsManager.add_appointment(
-                        appointment_id, empId, cusId, address, appointmentDate, appointmentTime
+                int appointment_id = AppointmentsManager.add_appointment(
+                        cusId, empId, address, appointmentDate, appointmentTime
                 );
                 Object[] data = {
                         appointment_id, employeeNo, customerNo, address, appointmentDate, appointmentTime
@@ -425,10 +421,12 @@ public class MainForm extends JFrame {
                 }
                 // And for appointments
                 for (Appointment appointment : AppointmentsManager.getAppointments()) {
+                    Customer customer = CustomerManager.getCustomer(appointment.getCustomer_id());
+                    Employee employee = EmployeesManager.getEmployee(appointment.getEmployee_id());
                     Object[] data = {
                             appointment.getAppointment_id(),
-                            appointment.getEmployee_id(),
-                            appointment.getCustomer_id(),
+                            employee.getEmp_no(),
+                            customer.getCustomer_no(),
                             appointment.getAddress(),
                             appointment.getDate(),
                             appointment.getTime()
@@ -484,7 +482,14 @@ public class MainForm extends JFrame {
                 int row = employeesTable.rowAtPoint(clickPoint);
                 int employeeId = (int) employeeTableModel.getValueAt(row, 0);
                 String employeeNo = (String) employeeTableModel.getValueAt(row, 1);
-                EmployeesManager.delete_employee(employeeId);
+                try
+                {
+                    EmployeesManager.delete_employee(employeeId);
+                }
+                catch (SQLException exception){
+                    JOptionPane.showMessageDialog(contentPanel, "You cannot delete this Employee! He has appointments assigned!");
+                    return;
+                }
                 employeeTableModel.removeRow(row);
                 JOptionPane.showMessageDialog(contentPanel, "Employee with Number " + employeeNo + " was deleted successfully!");
             }
@@ -540,7 +545,14 @@ public class MainForm extends JFrame {
                 int row = customersTable.rowAtPoint(clickPoint);
                 int customerId = (int) customerTableModel.getValueAt(row, 0);
                 String customerNo = (String) customerTableModel.getValueAt(row, 1);
-                CustomerManager.delete_customer(customerId);
+                try
+                {
+                    CustomerManager.delete_customer(customerId);
+                }
+                catch (SQLException exception){
+                    JOptionPane.showMessageDialog(contentPanel, "You cannot delete this Customer! He has appointments assigned!");
+                    return;
+                }
                 customerTableModel.removeRow(row);
                 JOptionPane.showMessageDialog(contentPanel, "Customer with Number " + customerNo + " was deleted successfully!");
             }

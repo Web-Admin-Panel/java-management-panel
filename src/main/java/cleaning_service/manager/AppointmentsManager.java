@@ -51,23 +51,33 @@ public class AppointmentsManager {
     }
 
     // Add a new appointment to the database
-    public static void add_appointment(int appointment_id, int customer_id, int employee_id, String address, String date, String time) {
-        String query = "INSERT INTO Appointment (appointment_id, customer_id, employee_id, address, date, time) VALUES (?, ?, ?, ?, ?, ?)";
+    public static int add_appointment(int customer_id, int employee_id, String address, String date, String time) {
+        String query = "INSERT INTO Appointment (customer_id, employee_id, address, date, time) VALUES (?, ?, ?, ?, ?)";
+        int newId = -1; // Default value in case insertion fails
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(query)) {
+             PreparedStatement pstmt = conn.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 
-            pstmt.setInt(1, appointment_id);
-            pstmt.setInt(2, customer_id);
-            pstmt.setInt(3, employee_id);
-            pstmt.setString(4, address);
-            pstmt.setString(5, date);
-            pstmt.setString(6, time);
+            pstmt.setInt(1, customer_id);
+            pstmt.setInt(2, employee_id);
+            pstmt.setString(3, address);
+            pstmt.setString(4, date);
+            pstmt.setString(5, time);
             pstmt.executeUpdate();
+
+            // Get the generated keys
+            try (ResultSet generatedKeys = pstmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    newId = generatedKeys.getInt(1);
+                }
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+
+        return newId;
     }
+
 
     // Edit an existing appointment in the database
     public static void edit_appointment(int appointment_id, int customer_id, int employee_id, String address, String date, String time) {

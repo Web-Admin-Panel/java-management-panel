@@ -49,19 +49,14 @@ public class EmployeesManager {
         return employees;
     }
 
-    public static Employee getEmployee(int index) {
-        List<Employee> employees = getEmployees();
-        return employees.get(index);
-    }
-
-    public static Employee getEmployeeByNum(int employee_no) {
+    public static Employee getEmployee(int employee_id) {
         Employee employee = null;
-        String query = "SELECT * FROM Employee WHERE emp_no = ?";
+        String query = "SELECT * FROM Employee WHERE emp_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
-            pstmt.setInt(1, employee_no);
+            pstmt.setInt(1, employee_id);
             try (ResultSet rs = pstmt.executeQuery()) {
                 if (rs.next()) {
                     employee = new Employee(
@@ -82,20 +77,47 @@ public class EmployeesManager {
         return employee;
     }
 
-    public static void add_employee(int emp_id, String emp_no, String emp_name, String emp_surname, String gender, String job_title, String nationality, String birthday) {
-        String query = "INSERT INTO Employee (emp_id, emp_no, emp_name, emp_surname, gender, job_title, nationality, birthday) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    public static Employee getEmployeeByNum(String employee_no) {
+        Employee employee = null;
+        String query = "SELECT * FROM Employee WHERE emp_no = ?";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
 
-            pstmt.setInt(1, emp_id);
-            pstmt.setString(2, emp_no);
-            pstmt.setString(3, emp_name);
-            pstmt.setString(4, emp_surname);
-            pstmt.setString(5, gender);
-            pstmt.setString(6, job_title);
-            pstmt.setString(7, nationality);
-            pstmt.setString(8, birthday);
+            pstmt.setString(1, employee_no);
+            try (ResultSet rs = pstmt.executeQuery()) {
+                if (rs.next()) {
+                    employee = new Employee(
+                            rs.getInt("emp_id"),
+                            rs.getString("emp_no"),
+                            rs.getString("emp_name"),
+                            rs.getString("emp_surname"),
+                            rs.getString("gender"),
+                            rs.getString("job_title"),
+                            rs.getString("nationality"),
+                            rs.getString("birthday")
+                    );
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return employee;
+    }
+
+    public static void add_employee(String emp_no, String emp_name, String emp_surname, String gender, String job_title, String nationality, String birthday) {
+        String query = "INSERT INTO Employee (emp_no, emp_name, emp_surname, gender, job_title, nationality, birthday) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setString(1, emp_no);
+            pstmt.setString(2, emp_name);
+            pstmt.setString(3, emp_surname);
+            pstmt.setString(4, gender);
+            pstmt.setString(5, job_title);
+            pstmt.setString(6, nationality);
+            pstmt.setString(7, birthday);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -122,7 +144,7 @@ public class EmployeesManager {
         }
     }
 
-    public static void delete_employee(int emp_id) {
+    public static void delete_employee(int emp_id) throws SQLException {
         String query = "DELETE FROM Employee WHERE emp_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -132,6 +154,7 @@ public class EmployeesManager {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
     }
 

@@ -36,6 +36,30 @@ public class CustomerManager {
         return customers;
     }
 
+    public static Customer getCustomer(int customer_id) {
+        Customer customer = null;
+        String query = "SELECT * FROM Customer WHERE customer_id = ?";
+
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement pstmt = conn.prepareStatement(query)) {
+
+            pstmt.setInt(1, customer_id);
+            ResultSet rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                customer = new Customer(
+                        rs.getInt("customer_id"),
+                        rs.getString("customer_no"),
+                        rs.getString("customer_name"),
+                        rs.getString("customer_surname")
+                );
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return customer;
+    }
+
     // Method to retrieve a specific customer by number
     public static Customer getCustomerByNum(String customer_no) {
         Customer customer = null;
@@ -62,16 +86,14 @@ public class CustomerManager {
     }
 
     // Method to add a new customer to the database
-    public static void add_customer(int customer_id, String customer_no, String customer_name, String customer_surname) {
-        String query = "INSERT INTO Customer (customer_id, customer_no, customer_name, customer_surname) VALUES (?, ?, ?, ?)";
+    public static void add_customer(String customer_no, String customer_name, String customer_surname) {
+        String query = "INSERT INTO Customer (customer_no, customer_name, customer_surname) VALUES (?, ?, ?)";
 
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement pstmt = conn.prepareStatement(query)) {
-
-            pstmt.setInt(1, customer_id);
-            pstmt.setString(2, customer_no);
-            pstmt.setString(3, customer_name);
-            pstmt.setString(4, customer_surname);
+            pstmt.setString(1, customer_no);
+            pstmt.setString(2, customer_name);
+            pstmt.setString(3, customer_surname);
             pstmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -100,7 +122,7 @@ public class CustomerManager {
     }
 
     // Method to delete a customer from the database
-    public static void delete_customer(int customer_id) {
+    public static void delete_customer(int customer_id) throws SQLException {
         String query = "DELETE FROM Customer WHERE customer_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
@@ -111,6 +133,7 @@ public class CustomerManager {
 
         } catch (SQLException e) {
             e.printStackTrace();
+            throw e;
         }
     }
 
